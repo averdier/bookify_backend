@@ -3,7 +3,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from config import config
-from .extensions import db
+from .extensions import db, mail
 
 
 def create_app(config_name='default'):
@@ -41,8 +41,9 @@ def create_app(config_name='default'):
     return app
 
 
-def extensions(app):
+def extensions(flask_app):
     """
     Init extensions
     """
-    db.init_app(app)
+    db.init_app(flask_app)
+    mail.init_app(flask_app)

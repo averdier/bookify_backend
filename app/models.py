@@ -16,6 +16,8 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.String(32), index=True, unique=True)
     secret_hash = db.Column(db.String(128), nullable=False)
+    email = db.Column(db.String(64), unique=True, nullable=False)
+    confirmed = db.Column(db.Boolean, default=False)
 
     @property
     def secret(self):

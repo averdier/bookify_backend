@@ -34,7 +34,7 @@ def is_authorized_client(client_id, secret):
     if u is None:
         return False
 
-    if u.check_secret(secret):
+    if u.check_secret(secret) and u.confirmed:
         g.user = u
         return True
 

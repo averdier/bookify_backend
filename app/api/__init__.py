@@ -48,7 +48,7 @@ def verify_token(token):
         )
         u = User.query.get(int(response['user']['id']))
 
-        if u:
+        if u is not None and u.confirmed:
             g.user = u
             g.user_token = token
             return True
@@ -63,6 +63,8 @@ def verify_token(token):
 
 from .endpoints.auth import ns as auth_namespace
 from .endpoints.books import ns as books_namespace
+from .endpoints.users import ns as users_namespace
 
 api.add_namespace(auth_namespace)
 api.add_namespace(books_namespace)
+api.add_namespace(users_namespace)

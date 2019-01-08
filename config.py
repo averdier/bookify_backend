@@ -12,9 +12,19 @@ class Config:
 
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY', os.path.join(basedir, 'auth_privkey.pem'))
     PUBLIC_KEY = os.environ.get('PUBLIC_KEY', os.path.join(basedir, 'auth_pubkey.pem'))
+    SALT_KEY = os.environ.get('SALT_KEY', 'random')
 
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI', 'sqlite:///' + os.path.join(basedir, 'app.db'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'localhost')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', '1025'))
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'False') == 'True'
+    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False') == 'True'
+    MAIL_DEBUG = os.environ.get('MAIL_DEBUG', 'False') == 'True'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'rastadev@dev.dev')
 
     LOG_PATH = os.environ.get('LOG_PATH', os.path.join(basedir, 'goals_backend.log'))
     LOG_SIZE = int(os.environ.get('LOG_SIZE', '20000'))

@@ -28,6 +28,14 @@ services:
       - DATABASE_URI=sqlite:////database/app.db
       - PRIVATE_KEY=/keys/auth_privkey.pem
       - PUBLIC_KEY=/keys/auth_pubkey.pem
+      - MAIL_SERVER=smtp.googlemail.com
+      - MAIL_PORT=465
+      - MAIL_USERNAME=rasta.dev.02@gmail.com
+      - MAIL_PASSWORD=
+      - MAIL_DEFAULT_SENDER=rasta.dev.02@gmail.com
+      - MAIL_USE_TLS=False
+      - MAIL_USE_SSL=True
+      - MAIL_DEBUG=True
       - LOG_PATH=/logs/bookify_backend.log
     volumes:
       - sockets:/sockets/

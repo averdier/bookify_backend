@@ -19,10 +19,13 @@ services:
     image: 'bookify_backend:dev'
     command: uwsgi app.ini
     environment:
+      - APP_CONFIG=development
       - ADMINS=a.verdier@outlook.fr
       - DATABASE_URI=sqlite:////database/app.db
       - PRIVATE_KEY=/keys/auth_privkey.pem
       - PUBLIC_KEY=/keys/auth_pubkey.pem
+      - MAIL_SERVER=smtp
+      - MAIL_PORT=25
       - LOG_PATH=/logs/bookify_backend.log
     volumes:
       - sockets:/sockets/
@@ -30,6 +33,13 @@ services:
       - ./keys:/keys/
       - ./config/app.ini:/bookify/app.ini
       - ./database:/database/
+    networks:
+      - services_network
+
+  smtp:
+    image: tophfr/mailcatcher
+    ports:
+      - 1080:80
     networks:
       - services_network
 

@@ -1,0 +1,10 @@
+Date: {{date}}
+From: {{from}}
+To: {{to}}
+Subject: {{subject}}
+Content-Type: text/plain
+
+{{ content }}
+
+--
+Bookify

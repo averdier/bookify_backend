@@ -15,7 +15,9 @@ if __name__ == '__main__':
         if len(User.query.all()) == 0:
             admin = User(
                 client_id='rastadev',
-                secret='rastadev'
+                secret='rastadev',
+                email='a.verdier@outlook.fr',
+                confirmed=True
             )
             db.session.add(admin)
             db.session.commit()

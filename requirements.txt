@@ -1,12 +1,14 @@
 uWSGI==2.0.17
 aniso8601==4.0.1
 asn1crypto==0.24.0
+blinker==1.4
 cffi==1.11.5
 Click==7.0
 cryptography==2.4.2
 Flask==1.0.2
 Flask-Cors==3.0.7
 Flask-HTTPAuth==3.2.4
+Flask-Mail==0.9.1
 flask-restplus==0.12.1
 Flask-SQLAlchemy==2.3.2
 idna==2.8
