@@ -1,0 +1,47 @@
+version: "2"
+
+services:
+
+  nginx:
+    build: ./nginx
+    environment:
+      - CERTS=bookify.ddns.net
+      - EMAIL=a.verdier@outlook.fr
+    networks:
+      - services_network
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - sockets:/sockets/
+      - ./config/services.prod.conf:/etc/nginx/conf.d/bookify.ddns.net.conf
+      - ./etc/ssl/dhparam:/etc/ssl/dhparam
+      - ./etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - bookify_backend
+
+  bookify_backend:
+    image: 'bookify_backend:dev'
+    command: uwsgi app.ini
+    environment:
+      - ADMINS=a.verdier@outlook.fr
+      - DATABASE_URI=sqlite:////database/app.db
+      - PRIVATE_KEY=/keys/auth_privkey.pem
+      - PUBLIC_KEY=/keys/auth_pubkey.pem
+      - LOG_PATH=/logs/bookify_backend.log
+    volumes:
+      - sockets:/sockets/
+      - ./logs:/logs
+      - ./keys:/keys/
+      - ./config/app.ini:/bookify/app.ini
+      - ./database:/database/
+    networks:
+      - services_network
+
+volumes:
+  sockets:
+    driver: local
+
+networks:
+  services_network:
+    driver: bridge
