@@ -4,7 +4,7 @@ from flask import request
 from flask_restplus import Namespace, Resource, abort
 from .. import auth
 from ..serializers.books import book_model, book_post_model, books_container
-from app.models import Book, db
+from app.models import Book
 
 ns = Namespace('books', description='Books related operations.')
 
@@ -29,7 +29,7 @@ class BooksResource(Resource):
         """
         return {
             'books': [
-                b.to_json() for b in Book.query.all()
+                b.to_json() for b in Book.search().execute()
             ]
         }
 
@@ -41,17 +41,16 @@ class BooksResource(Resource):
         """
         data = request.json
 
-        if Book.query.filter_by(isbn=data['isbn']).first() is not None:
+        if Book.search().query('match', isbn=data['isbn']).execute().hits.total != 0:
             abort(400, error='ISBN number already exist')
 
         book = Book.from_dict(data)
-        db.session.add(book)
-        db.session.commit()
+        book.save()
 
         return book.to_json()
 
 
-@ns.route('/<int:book_id>')
+@ns.route('/<book_id>')
 @ns.response(404, 'Book not found')
 class GoalResource(Resource):
     decorators = [auth.login_required]
@@ -61,4 +60,10 @@ class GoalResource(Resource):
         """
         Get book from id
         """
-        return Book.query.get_or_404(book_id).to_json()
+        book = Book.get(book_id, ignore=404)
+
+        if book:
+            return book.to_json()
+
+        else:
+            abort(404, error='Book not found')

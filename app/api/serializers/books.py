@@ -17,7 +17,7 @@ book_post_model = api.model('Book POST model', {
 })
 
 book_model = api.model('Book model', {
-    'id': fields.Integer(required=True, description='Unique ID'),
+    'id': fields.String(required=True, description='Unique ID'),
     'publication': fields.DateTime(required=True, description='Publication datetime'),
     'isbn': fields.String(required=True, description='Unique ISBN'),
     'name': fields.String(required=True, description='Name'),

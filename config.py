@@ -17,6 +17,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI', 'sqlite:///' + os.path.join(basedir, 'app.db'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST', '')
+    ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER', '')
+    ELASTICSEARCH_SECRET = os.environ.get('ELASTICSEARCH_SECRET', '')
+
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'localhost')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', '1025'))
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'False') == 'True'

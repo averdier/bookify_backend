@@ -5,6 +5,8 @@ blinker==1.4
 cffi==1.11.5
 Click==7.0
 cryptography==2.4.2
+elasticsearch==6.3.1
+elasticsearch-dsl==6.2.1
 Flask==1.0.2
 Flask-Cors==3.0.7
 Flask-HTTPAuth==3.2.4
@@ -12,6 +14,7 @@ Flask-Mail==0.9.1
 flask-restplus==0.12.1
 Flask-SQLAlchemy==2.3.2
 idna==2.8
+ipaddress==1.0.22
 itsdangerous==1.1.0
 Jinja2==2.10
 jsonschema==2.6.0
@@ -22,4 +25,5 @@ python-dateutil==2.7.5
 pytz==2018.9
 six==1.12.0
 SQLAlchemy==1.2.15
+urllib3==1.24.1
 Werkzeug==0.14.1

@@ -5,7 +5,7 @@ import jwt
 from flask import Blueprint, current_app, g
 from flask_restplus import Api
 from flask_httpauth import HTTPTokenAuth
-from app.models import User
+from app.models import Client
 
 
 blueprint = Blueprint('api', __name__, url_prefix='/api')
@@ -46,7 +46,7 @@ def verify_token(token):
             audience='bookify_backend',
             algorithms=['RS512']
         )
-        u = User.query.get(int(response['user']['id']))
+        u = Client.get(response['user']['id'], ignore=404)
 
         if u is not None and u.confirmed:
             g.user = u

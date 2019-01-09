@@ -7,7 +7,7 @@ from flask_mail import Message
 from app.extensions import mail
 from itsdangerous import URLSafeTimedSerializer
 from ..serializers.users import user_post_model
-from app.models import User, db
+from app.models import Client
 from app.utils import render_email
 
 ns = Namespace('users', description='Users related operations.')
@@ -25,23 +25,23 @@ ns = Namespace('users', description='Users related operations.')
 class UsersResource(Resource):
 
     @ns.expect(user_post_model)
-    @ns.response(200, 'User successfully registered')
+    @ns.response(200, 'Client successfully registered')
     def post(self):
         """
         Register user
         """
         data = request.json
 
-        if User.query.filter_by(client_id=data['client_id']).first() is not None:
+        if Client.search().query('match', client_id=data['client_id']).execute().hits.total != 0:
             abort(400, error='Client id already exist')
 
-        if User.query.filter_by(email=data['email']).first() is not None:
+        if Client.search().query('match', email=data['email']).execute().hits.total != 0:
             abort(400, error='Email already exist')
 
         if not re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", data['email']):
             abort(400, error='{0} not pass email regex.'.format(data['email']))
 
-        user = User(
+        user = Client(
             client_id=data['client_id'],
             email=data['email'],
             secret=data['client_secret']
@@ -63,10 +63,9 @@ class UsersResource(Resource):
 
             mail.send(msg)
 
-            db.session.add(user)
-            db.session.commit()
+            user.save()
 
-            return 'User successfully registered', 200
+            return 'Client successfully registered', 200
 
         except Exception as ex:
             current_app.logger.error('Unable to register user --> {0}'.format(ex))
@@ -77,7 +76,7 @@ class UsersResource(Resource):
 @ns.response(404, 'Token not found')
 class ConfirmResource(Resource):
 
-    @ns.response(200, 'User successfully confirmed')
+    @ns.response(200, 'Client successfully confirmed')
     def get(self, token):
         """
         Confirm registration
@@ -90,17 +89,15 @@ class ConfirmResource(Resource):
                 max_age=3600
             )
 
-            user = User.query.filter_by(email=email).first()
-
-            if user is None:
+            response = Client.search().query('match', email=email).execute()
+            if response.hits.total == 0:
                 abort(404, error='Token not found')
 
+            user = response.hits[0]
             user.confirmed = True
+            user.save()
 
-            db.session.add(user)
-            db.session.commit()
-
-            return 'User successfully confirmed', 200
+            return 'Client successfully confirmed', 200
 
         except Exception as ex:
             current_app.logger.error('Unable to confirm user --> {0}'.format(ex))

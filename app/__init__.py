@@ -3,7 +3,8 @@
 from flask import Flask, request
 from flask_cors import CORS
 from config import config
-from .extensions import db, mail
+from elasticsearch_dsl.connections import connections
+from .extensions import mail
 
 
 def create_app(config_name='default'):
@@ -22,6 +23,13 @@ def create_app(config_name='default'):
 
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
+
+    connections.create_connection(
+        hosts=app.config['ELASTICSEARCH_HOST'],
+        http_auth=(app.config['ELASTICSEARCH_USER'], app.config['ELASTICSEARCH_SECRET']),
+        timeout=20
+    )
+    connections.get_connection()
 
     app.register_blueprint(api_blueprint)
 
@@ -45,5 +53,4 @@ def extensions(flask_app):
     """
     Init extensions
     """
-    db.init_app(flask_app)
     mail.init_app(flask_app)

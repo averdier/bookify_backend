@@ -8,17 +8,20 @@ if __name__ == '__main__':
     flask_app = create_app(os.environ.get('APP_CONFIG', 'default'))
 
     with flask_app.test_request_context():
-        from app.models import User, Book, db
+        from app.models import Client, Book
 
-        db.create_all()
+        Client.init()
+        Book.init()
 
-        if len(User.query.all()) == 0:
-            admin = User(
+        response = Client.search().execute()
+        print(response.hits)
+        print('Total %d hits found.' % response.hits.total)
+        if Client.search().execute().hits.total == 0:
+            admin = Client(
                 client_id='rastadev',
                 secret='rastadev',
                 email='a.verdier@outlook.fr',
                 confirmed=True
             )
-            db.session.add(admin)
-            db.session.commit()
+            admin.save()
             print('admin created')

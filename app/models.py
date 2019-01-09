@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
 
 from dateutil.parser import parse
-import hashlib
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.extensions import db
+from elasticsearch_dsl import Document, Keyword, Boolean, Date, Integer
 
 
-class User(db.Model):
+class Client(Document):
     """
-    User model
+    Client model
     """
-    __tablename__ = 'users'
+    client_id = Keyword()
+    secret_hash = Keyword()
+    email = Keyword()
+    confirmed = Boolean()
 
-    id = db.Column(db.Integer, primary_key=True)
-    client_id = db.Column(db.String(32), index=True, unique=True)
-    secret_hash = db.Column(db.String(128), nullable=False)
-    email = db.Column(db.String(64), unique=True, nullable=False)
-    confirmed = db.Column(db.Boolean, default=False)
+    class Index:
+        name = 'client'
 
     @property
     def secret(self):
@@ -30,23 +29,30 @@ class User(db.Model):
     def check_secret(self, pwd):
         return check_password_hash(self.secret_hash, pwd)
 
+    def to_json(self):
+        return {
+            'id': self.meta.id,
+            'client_id': self.client_id,
+            'email': self.email
+        }
 
-class Book(db.Model):
+
+class Book(Document):
     """
     Book model
     """
-    __tablename__ = 'books'
+    publication = Date()
+    isbn = Keyword()
+    name = Keyword()
+    authors = Keyword()
+    cover = Keyword()
+    editor = Keyword()
+    pages = Integer()
+    description = Keyword()
+    genders = Keyword()
 
-    id = db.Column(db.Integer, primary_key=True)
-    publication = db.Column(db.DateTime)
-    isbn = db.Column(db.String(16), index=True, unique=True)
-    name = db.Column(db.String(64), nullable=False)
-    authors = db.Column(db.String(512), nullable=False)
-    cover = db.Column(db.String(64), nullable=False)
-    editor = db.Column(db.String(64), nullable=False)
-    pages = db.Column(db.Integer, nullable=False)
-    description = db.Column(db.String(1024))
-    genders = db.Column(db.String(512))
+    class Index:
+        name = 'books'
 
     @staticmethod
     def from_dict(data):
@@ -64,7 +70,7 @@ class Book(db.Model):
 
     def to_json(self):
         return {
-            'id': self.id,
+            'id': self.meta.id,
             'publication': self.publication,
             'isbn': self.isbn,
             'name': self.name,
@@ -75,6 +81,8 @@ class Book(db.Model):
             'description': self.description,
             'genders': json.loads(self.genders)
         }
+
+
 
 
 

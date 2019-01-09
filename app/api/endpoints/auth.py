@@ -7,7 +7,7 @@ from flask_restplus import Namespace, Resource, abort, marshal
 from .. import auth
 from ..serializers.auth import user_model, token_encoded_model, token_unencoded_model
 from ..parsers import auth_parser
-from app.models import User
+from app.models import Client
 
 ns = Namespace('auth', description='Auth related operations.')
 
@@ -29,11 +29,12 @@ def is_authorized_client(client_id, secret):
     :param secret:
     :return:
     """
-    u = User.query.filter_by(client_id=client_id).first()
+    response = Client.search().query('match', client_id=client_id).execute()
 
-    if u is None:
+    if response.hits.total == 0:
         return False
 
+    u = response.hits[0]
     if u.check_secret(secret) and u.confirmed:
         g.user = u
         return True
@@ -84,13 +85,12 @@ class TokenResource(Resource):
                 abort(401, error='Unauthorized')
 
             now = int(time.time())
-
             unencoded = {
                 'iss': 'bookify_backend',
                 'aud': audience,
                 'iat': now,
                 'exp': now + 3600 * 24,
-                'user': marshal(g.user, user_model)
+                'user': g.user.to_json()
             }
 
             token = jwt.encode(unencoded, current_app.config['PRIVATE_KEY'], algorithm='RS512')
