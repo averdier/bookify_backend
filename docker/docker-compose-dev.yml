@@ -27,6 +27,8 @@ services:
         hard: -1
     networks:
       - services_network
+    volumes:
+      - ./es/data:/usr/share/elasticsearch/data
 
   bookify_backend:
     image: 'bookify_backend:dev'
@@ -34,7 +36,6 @@ services:
     environment:
       - APP_CONFIG=development
       - ADMINS=a.verdier@outlook.fr
-      - DATABASE_URI=sqlite:////database/app.db
       - ELASTICSEARCH_HOST=elasticsearch
       - ELASTICSEARCH_USER=elastic
       - ELASTICSEARCH_SECRET=changeme
@@ -51,6 +52,8 @@ services:
       - ./database:/database/
     networks:
       - services_network
+    depends_on:
+      - elasticsearch
 
   smtp:
     image: tophfr/mailcatcher

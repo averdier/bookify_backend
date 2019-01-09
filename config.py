@@ -14,8 +14,7 @@ class Config:
     PUBLIC_KEY = os.environ.get('PUBLIC_KEY', os.path.join(basedir, 'auth_pubkey.pem'))
     SALT_KEY = os.environ.get('SALT_KEY', 'random')
 
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI', 'sqlite:///' + os.path.join(basedir, 'app.db'))
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    PAGINATION_SIZE = int(os.environ.get('PAGINATION_SIZE', '10'))
 
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST', '')
     ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER', '')

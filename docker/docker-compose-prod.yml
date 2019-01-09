@@ -20,12 +20,27 @@ services:
     depends_on:
       - bookify_backend
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.2
+    environment:
+      - cluster.name=bookify-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m -XX:-AssumeMP"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - services_network
+
   bookify_backend:
     image: 'bookify_backend:dev'
     command: uwsgi app.ini
     environment:
       - ADMINS=a.verdier@outlook.fr
-      - DATABASE_URI=sqlite:////database/app.db
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_USER=elastic
+      - ELASTICSEARCH_SECRET=changeme
       - PRIVATE_KEY=/keys/auth_privkey.pem
       - PUBLIC_KEY=/keys/auth_pubkey.pem
       - MAIL_SERVER=smtp.googlemail.com

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from flask import request
+from flask import request, current_app
 from flask_restplus import Namespace, Resource, abort
 from .. import auth
 from ..serializers.books import book_model, book_post_model, books_container
+from ..parsers import books_parsers
 from app.models import Book
 
 ns = Namespace('books', description='Books related operations.')
@@ -23,13 +24,27 @@ class BooksResource(Resource):
     decorators = [auth.login_required]
 
     @ns.marshal_with(books_container)
+    @ns.expect(books_parsers)
     def get(self):
         """
         Get books
         """
+        args = request.args
+        start = int(args.get('from', 0))
+        if start < 0:
+            abort(400, error='from >= 0')
+
+        size = int(args.get('size', current_app.config['PAGINATION_SIZE']))
+        if size < 0:
+            abort(400, error='size >= 0')
+
+        order = args.get('order', 'desc')
+        if order not in ['asc', 'desc']:
+            abort(400, error='Unknown order')
+
         return {
             'books': [
-                b.to_json() for b in Book.search().execute()
+                b.to_json() for b in Book.search().sort({'publication': {'order': order}})[start:size]
             ]
         }
 
