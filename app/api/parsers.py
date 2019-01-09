@@ -11,3 +11,6 @@ books_parsers = api.parser()
 books_parsers.add_argument('from', required=False, type=int, help='From', location='args')
 books_parsers.add_argument('size', required=False, type=int, help='Size', location='args')
 books_parsers.add_argument('order', required=False, type=str, help='Order (asc|desc)', location='args')
+
+search_parsers = books_parsers.copy()
+search_parsers.add_argument('name', required=False, type=str, help='Name', location='args')

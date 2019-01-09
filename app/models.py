@@ -3,7 +3,7 @@
 from dateutil.parser import parse
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
-from elasticsearch_dsl import Document, Keyword, Boolean, Date, Integer
+from elasticsearch_dsl import Document, Keyword, Boolean, Date, Integer, Text, Completion, analyzer, token_filter
 
 
 class Client(Document):
@@ -43,7 +43,10 @@ class Book(Document):
     """
     publication = Date()
     isbn = Keyword()
-    name = Keyword()
+
+    name = Text(fields={'keyword': Keyword()})
+    name_suggest = Completion()
+
     authors = Keyword()
     cover = Keyword()
     editor = Keyword()
@@ -60,6 +63,7 @@ class Book(Document):
             publication=parse(data['publication']),
             isbn=data['isbn'],
             name=data['name'],
+            name_suggest=data['name'],
             authors=json.dumps(data['authors']),
             cover=data['cover'],
             editor=data['editor'],
@@ -81,8 +85,3 @@ class Book(Document):
             'description': self.description,
             'genders': json.loads(self.genders)
         }
-
-
-
-
-

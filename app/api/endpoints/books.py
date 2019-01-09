@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import json
 from flask import request, current_app
 from flask_restplus import Namespace, Resource, abort
 from .. import auth
 from ..serializers.books import book_model, book_post_model, books_container
-from ..parsers import books_parsers
+from ..parsers import books_parsers, search_parsers
 from app.models import Book
 
 ns = Namespace('books', description='Books related operations.')
@@ -65,9 +66,34 @@ class BooksResource(Resource):
         return book.to_json()
 
 
+@ns.route('/autocomplete/<name>')
+class BooksSearchResource(Resource):
+    decorators = [auth.login_required]
+
+    @ns.marshal_with(books_container)
+    def get(self, name):
+        """
+        Autocomplete books
+        """
+        response = Book.search().suggest('auto_complete', name, completion={'field': 'name_suggest'}).execute()
+        books = []
+
+        for result in response.suggest.auto_complete:
+            for option in result.options:
+                payload = option._source.to_dict()
+                payload['authors'] = json.loads(payload['authors'])
+                payload['genders'] = json.loads(payload['genders'])
+                payload['id'] = option._id
+                books.append(payload)
+
+        return {
+            'books': books
+        }
+
+
 @ns.route('/<book_id>')
 @ns.response(404, 'Book not found')
-class GoalResource(Resource):
+class BookResource(Resource):
     decorators = [auth.login_required]
 
     @ns.marshal_with(book_model)
