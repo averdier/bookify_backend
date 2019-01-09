@@ -66,7 +66,7 @@ class UsersResource(Resource):
             db.session.add(user)
             db.session.commit()
 
-            return 200, 'User successfully register'
+            return 'User successfully registered', 200
 
         except Exception as ex:
             current_app.logger.error('Unable to register user --> {0}'.format(ex))
@@ -100,7 +100,7 @@ class ConfirmResource(Resource):
             db.session.add(user)
             db.session.commit()
 
-            return 200, 'User successfully confirmed'
+            return 'User successfully confirmed', 200
 
         except Exception as ex:
             current_app.logger.error('Unable to confirm user --> {0}'.format(ex))
