@@ -3,10 +3,11 @@
 import re
 from flask import g, request, current_app, url_for
 from flask_restplus import Namespace, Resource, abort
+from .. import auth
 from flask_mail import Message
 from app.extensions import mail
 from itsdangerous import URLSafeTimedSerializer
-from ..serializers.users import user_post_model
+from ..serializers.users import user_post_model, user_patch_model, user_model
 from app.models import Client
 from app.utils import render_email
 
@@ -20,6 +21,26 @@ ns = Namespace('users', description='Users related operations.')
 #   API Users endpoints
 #
 # ================================================================================================
+
+
+@ns.route('/')
+class UserResource(Resource):
+    decorators = [auth.login_required]
+
+    @ns.expect(user_patch_model)
+    @ns.marshal_with(user_model)
+    def patch(self):
+        """
+        Update user
+        """
+        data = request.json
+
+        if data.get('favorite_genders'):
+            g.user.favorite_genders = data['favorite_genders']
+            g.user.save()
+
+        return g.user
+
 
 @ns.route('/register')
 class UsersResource(Resource):

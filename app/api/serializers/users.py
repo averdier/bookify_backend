@@ -11,6 +11,10 @@ user_post_model = api.model('Client POST model', {
     'favorite_genders': fields.List(fields.String(), required=True, description='Favorite genders')
 })
 
+user_patch_model = api.model('Client PATCH model', {
+    'favorite_genders': fields.List(fields.String(), required=False, description='Favorite genders')
+})
+
 user_model = api.model('Client model', {
     'id': fields.String(required=True, description='Client unique ID'),
     'client_id': fields.String(required=True, description='Client ID'),
