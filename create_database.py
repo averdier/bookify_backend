@@ -14,14 +14,13 @@ if __name__ == '__main__':
         Book.init()
 
         response = Client.search().execute()
-        print(response.hits)
-        print('Total %d hits found.' % response.hits.total)
         if Client.search().execute().hits.total == 0:
             admin = Client(
                 client_id='rastadev',
                 secret='rastadev',
                 email='a.verdier@outlook.fr',
-                confirmed=True
+                confirmed=True,
+                favorite_genders=['chill', 'science']
             )
             admin.save()
             print('admin created')

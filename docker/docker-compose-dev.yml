@@ -27,8 +27,6 @@ services:
         hard: -1
     networks:
       - services_network
-    volumes:
-      - ./es/data:/usr/share/elasticsearch/data
 
   bookify_backend:
     image: 'bookify_backend:dev'

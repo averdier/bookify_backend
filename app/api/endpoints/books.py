@@ -84,7 +84,11 @@ class BooksSearchResource(Resource):
                 payload['authors'] = json.loads(payload['authors'])
                 payload['genders'] = json.loads(payload['genders'])
                 payload['id'] = option._id
-                books.append(payload)
+
+                if len(books) < 10:
+                    books.append(payload)
+                else:
+                    break
 
         return {
             'books': books

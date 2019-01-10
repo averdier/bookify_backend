@@ -3,7 +3,7 @@
 from dateutil.parser import parse
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
-from elasticsearch_dsl import Document, Keyword, Boolean, Date, Integer, Text, Completion, analyzer, token_filter
+from elasticsearch_dsl import Document, Keyword, Boolean, Date, Integer, Text, Completion, FacetedSearch, TermsFacet, DateHistogramFacet
 
 
 class Client(Document):
@@ -14,6 +14,7 @@ class Client(Document):
     secret_hash = Keyword()
     email = Keyword()
     confirmed = Boolean()
+    favorite_genders = Keyword()
 
     class Index:
         name = 'client'
@@ -33,7 +34,8 @@ class Client(Document):
         return {
             'id': self.meta.id,
             'client_id': self.client_id,
-            'email': self.email
+            'email': self.email,
+            'favorite_genders': list(self.favorite_genders)
         }
 
 
@@ -64,12 +66,12 @@ class Book(Document):
             isbn=data['isbn'],
             name=data['name'],
             name_suggest=data['name'],
-            authors=json.dumps(data['authors']),
+            authors=data['authors'],
             cover=data['cover'],
             editor=data['editor'],
             pages=data['pages'],
             description=data.get('description'),
-            genders=json.dumps(data['genders'])
+            genders=data['genders']
         )
 
     def to_json(self):
@@ -78,10 +80,25 @@ class Book(Document):
             'publication': self.publication,
             'isbn': self.isbn,
             'name': self.name,
-            'authors': json.loads(self.authors),
+            'authors': self.authors,
             'cover': self.cover,
             'editor': self.editor,
             'pages': self.pages,
             'description': self.description,
-            'genders': json.loads(self.genders)
+            'genders': self.genders
         }
+
+
+class BookSearch(FacetedSearch):
+    """
+    Book search
+    """
+    doc_types = [Book,]
+    fields = ['authors', 'name', 'genders', 'editor']
+
+    facets = {
+        'authors': TermsFacet(fields='authors'),
+        'genders': TermsFacet(fields='genders'),
+        'editors': TermsFacet(fields='editors'),
+        'publication': DateHistogramFacet(field='publication', interval='year')
+    }
