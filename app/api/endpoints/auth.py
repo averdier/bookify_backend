@@ -5,7 +5,8 @@ import jwt
 from flask import g, request, current_app
 from flask_restplus import Namespace, Resource, abort, marshal
 from .. import auth
-from ..serializers.auth import user_model, token_encoded_model, token_unencoded_model
+from ..serializers.auth import token_encoded_model, token_unencoded_model
+from ..serializers.users import user_detail_model
 from ..parsers import auth_parser
 from app.models import Client
 
@@ -46,10 +47,22 @@ def is_authorized_client(client_id, secret):
 class UserResource(Resource):
     decorators = [auth.login_required]
 
+    @ns.marshal_with(user_detail_model)
+    def get(self):
+        """
+        Get user
+        """
+        return g.user.to_dict(include_id=True, include_offers=True)
+
+
+@ns.route('/token')
+class TokenResource(Resource):
+
+    @auth.login_required
     @ns.marshal_with(token_unencoded_model)
     def get(self):
         """
-        Get unencoded token
+        Get unencoded model
         """
         try:
             response = jwt.decode(g.user_token,
@@ -57,17 +70,12 @@ class UserResource(Resource):
                                   audience='bookify_backend',
                                   algorithms=['RS512']
                                   )
-            current_app.logger.info('{0} get profile'.format(g.user.client_id))
 
             return response
 
         except Exception as ex:
             current_app.logger.debug('Invalid token --> {0}'.format(ex))
             abort(400, 'Invalid token')
-
-
-@ns.route('/token')
-class TokenResource(Resource):
 
     @ns.marshal_with(token_encoded_model)
     @ns.expect(auth_parser)
@@ -90,7 +98,7 @@ class TokenResource(Resource):
                 'aud': audience,
                 'iat': now,
                 'exp': now + 3600 * 24,
-                'user': g.user.to_json()
+                'user': g.user.to_dict(include_id=True)
             }
 
             token = jwt.encode(unencoded, current_app.config['PRIVATE_KEY'], algorithm='RS512')

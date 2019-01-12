@@ -27,6 +27,8 @@ services:
         hard: -1
     networks:
       - services_network
+    ports:
+      - 9200:9200
 
   bookify_backend:
     image: 'bookify_backend:dev'

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from dateutil.parser import parse
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
-from elasticsearch_dsl import Document, Keyword, Boolean, Date, Integer, Text, Completion, FacetedSearch, TermsFacet, DateHistogramFacet
+from elasticsearch_dsl import Document, Keyword, Boolean, Date, Integer, Text, Completion, \
+    FacetedSearch, TermsFacet, DateHistogramFacet, Double
 
 
 class Client(Document):
@@ -30,13 +32,54 @@ class Client(Document):
     def check_secret(self, pwd):
         return check_password_hash(self.secret_hash, pwd)
 
-    def to_json(self):
-        return {
-            'id': self.meta.id,
-            'client_id': self.client_id,
-            'email': self.email,
-            'favorite_genders': list(self.favorite_genders)
-        }
+    @property
+    def offers_query(self):
+        return BookOffer.search().query('match', client_id=self.client_id)
+
+    @property
+    def offers(self):
+        return self.offers_query.execute()
+
+    def to_dict(self, include_id=False, include_offers=False, include_meta=False, skip_empty=True):
+        base = super().to_dict(include_meta=include_meta, skip_empty=skip_empty)
+
+        if include_id:
+            base['id'] = self.meta.id
+
+        if include_offers:
+            base['offers'] = [o.to_dict(include_id=True) for o in self.offers]
+
+        return base
+
+
+class BookOffer(Document):
+    """
+    Book offer model
+    """
+    created_at = Date()
+    client_id = Keyword()
+    book_id = Keyword()
+    price = Double()
+
+    class Index:
+        name = 'books_offers'
+
+    @staticmethod
+    def from_dict(data):
+        return BookOffer(
+            created_at=data['created_at'],
+            client_id=data['client_id'],
+            book_id=data['book_id'],
+            price=data['price']
+        )
+
+    def to_dict(self, include_id=False, include_meta=False, skip_empty=True):
+        base = super().to_dict(include_meta=include_meta, skip_empty=skip_empty)
+
+        if include_id:
+            base['id'] = self.meta.id
+
+        return base
 
 
 class Book(Document):
@@ -56,8 +99,82 @@ class Book(Document):
     description = Keyword()
     genders = Keyword()
 
+    last_offer = Date()
+    min_price = Double()
+    max_price = Double()
+    nb_offers = Integer()
+
     class Index:
         name = 'books'
+
+    @property
+    def offers_query(self):
+        return BookOffer.search().query('match', book_id=self.meta.id)
+
+    @property
+    def offers(self):
+        return self.offers_query.execute()
+
+    def add_offer(self, client_id, price):
+        """
+        Add offer
+        """
+        now = datetime.now()
+        offer = BookOffer.from_dict({
+            'created_at': now,
+            'client_id': client_id,
+            'book_id': self.meta.id,
+            'price': price
+        })
+        offer.save()
+
+        self.last_offer = now
+
+        if self.min_price is None:
+            self.min_price = price
+        elif price < self.min_price:
+            self.min_price = price
+
+        if self.max_price is None:
+            self.max_price = price
+        elif price > self.max_price:
+            self.max_price = price
+
+        self.nb_offers += 1
+        self.save()
+
+    def remove_offer(self, offer_id):
+        """
+        Remove offer
+        """
+        offer = BookOffer.get(id=offer_id, ignore=404)
+        if offer is None:
+            raise Exception('Offer #{0} not found'.format(offer_id))
+
+        if offer.book_id != self.meta.id:
+            raise Exception('Book #{0} not contains Offer #{1}'.format(self.meta.id, offer_id))
+
+        offer.delete()
+        self.nb_offers -= 1
+
+        if self.nb_offers != 0:
+            prices = []
+            dates = []
+
+            for offer in self.offers:
+                prices.append(offer.price)
+                dates.append(offer.created_at)
+
+            self.min_price = min(prices)
+            self.max_price = max(prices)
+            self.last_offer = max(dates)
+
+        else:
+            self.min_price = None
+            self.max_price = None
+            self.last_offer = None
+
+        self.save()
 
     @staticmethod
     def from_dict(data):
@@ -71,22 +188,20 @@ class Book(Document):
             editor=data['editor'],
             pages=data['pages'],
             description=data.get('description'),
-            genders=data['genders']
+            genders=data['genders'],
+            nb_offers=0
         )
 
-    def to_json(self):
-        return {
-            'id': self.meta.id,
-            'publication': self.publication,
-            'isbn': self.isbn,
-            'name': self.name,
-            'authors': self.authors,
-            'cover': self.cover,
-            'editor': self.editor,
-            'pages': self.pages,
-            'description': self.description,
-            'genders': self.genders
-        }
+    def to_dict(self, include_id=False, include_offers=False, include_meta=False, skip_empty=True):
+        base = super().to_dict(include_meta=include_meta, skip_empty=skip_empty)
+
+        if include_id:
+            base['id'] = self.meta.id
+
+        if include_offers:
+            base['offers'] = [o.to_dict(include_id=True) for o in self.offers]
+
+        return base
 
 
 class BookSearch(FacetedSearch):

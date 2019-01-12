@@ -39,7 +39,7 @@ class UserResource(Resource):
             g.user.favorite_genders = data['favorite_genders']
             g.user.save()
 
-        return g.user
+        return g.user.to_dict(include_id=True)
 
 
 @ns.route('/register')

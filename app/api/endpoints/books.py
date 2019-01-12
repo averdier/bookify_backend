@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import json
-from flask import request, current_app
+from flask import request, current_app, g
 from flask_restplus import Namespace, Resource, abort
 from .. import auth
-from ..serializers.books import book_model, book_post_model, books_container
+from ..serializers.books import book_model, book_post_model, books_container, book_detail_model
+from ..serializers.offers import offer_post_model
 from ..parsers import books_parsers, search_parsers
 from app.models import Book
 
@@ -45,7 +46,7 @@ class BooksResource(Resource):
 
         return {
             'books': [
-                b.to_json() for b in Book.search().sort({'publication': {'order': order}})[start:size]
+                b.to_dict(include_id=True) for b in Book.search().sort({'publication': {'order': order}})[start:size]
             ]
         }
 
@@ -63,7 +64,7 @@ class BooksResource(Resource):
         book = Book.from_dict(data)
         book.save()
 
-        return book.to_json()
+        return book.to_dict(include_id=True)
 
 
 @ns.route('/autocomplete/<name>')
@@ -100,7 +101,7 @@ class BooksSearchResource(Resource):
 class BookResource(Resource):
     decorators = [auth.login_required]
 
-    @ns.marshal_with(book_model)
+    @ns.marshal_with(book_detail_model)
     def get(self, book_id):
         """
         Get book from id
@@ -108,7 +109,30 @@ class BookResource(Resource):
         book = Book.get(book_id, ignore=404)
 
         if book:
-            return book.to_json()
+            return book.to_dict(include_id=True, include_offers=True)
 
         else:
             abort(404, error='Book not found')
+
+
+@ns.route('/<book_id>/offers')
+@ns.response(404, 'Book not found')
+class BookOffersResource(Resource):
+    decorators = [auth.login_required]
+
+    @ns.expect(offer_post_model)
+    @ns.response(200, 'Offer successfully added')
+    def post(self, book_id):
+        """
+        Add offer
+        """
+        data = request.json
+        book = Book.get(book_id, ignore=404)
+
+        if book is None:
+            abort(404, error='Book not found')
+
+        book.add_offer(g.user.client_id, data['price'])
+        book.save()
+
+        return 'Offer successfully added', 200

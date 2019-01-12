@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from flask_restplus import fields
-from .. import api
+from .offers import api, offer_model
 
 
 user_post_model = api.model('Client POST model', {
@@ -18,6 +18,10 @@ user_patch_model = api.model('Client PATCH model', {
 user_model = api.model('Client model', {
     'id': fields.String(required=True, description='Client unique ID'),
     'client_id': fields.String(required=True, description='Client ID'),
-    'email': fields.String(required=True, description='Email address'),
-    'favorite_genders': fields.List(fields.String(), required=True, description='Favorite genders')
+    'email': fields.String(required=True, description='Email address')
+})
+
+user_detail_model = api.inherit('Client detail model', user_model, {
+    'favorite_genders': fields.List(fields.String(), required=True, description='Favorite genders'),
+    'offers': fields.List(fields.Nested(offer_model), description='Offers')
 })

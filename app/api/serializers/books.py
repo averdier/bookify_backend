@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from flask_restplus import fields
-from .. import api
+from .offers import api, offer_model
 
 
 book_post_model = api.model('Book POST model', {
@@ -26,7 +26,15 @@ book_model = api.model('Book model', {
     'editor': fields.String(required=True, description='Editor'),
     'pages': fields.Integer(required=True, description='Number of pages'),
     'description': fields.String(required=True, description='Description'),
-    'genders': fields.List(fields.String(min_length=3, max_length=32), required=True, min_items=1, description='Genders')
+    'genders': fields.List(fields.String(), required=True, description='Genders'),
+    'last_offer': fields.DateTime(required=True, description='Last offer datetime'),
+    'min_price': fields.Float(required=True, description='Min price'),
+    'max_price': fields.Float(required=True, description='Max price'),
+    'nb_offers': fields.Integer(required=True, description='Nb offers')
+})
+
+book_detail_model = api.inherit('Book detail model', book_model, {
+    'offers': fields.List(fields.Nested(offer_model), description='Offers')
 })
 
 books_container = api.model('Books container', {
