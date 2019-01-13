@@ -10,6 +10,11 @@ offer_post_model = api.model('Offer POST model', {
 })
 
 
+offer_put_model = api.model('Offer PUT model', {
+    'price': fields.Float(required=True, min=0, description='Price')
+})
+
+
 offer_model = api.model('Offer model', {
     'id': fields.String(required=True, description='Offer unique ID'),
     'client_id': fields.String(required=True, description='Client ID'),

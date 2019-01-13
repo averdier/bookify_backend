@@ -52,8 +52,6 @@ class Client(Document):
             for offer in self.offers:
                 if not offer.purchased:
                     base['offers'].append(offer.to_dict(include_id=True))
-                else:
-                    base['purchased'].append(offer.to_dict(include_id=True))
 
         return base
 
@@ -68,7 +66,8 @@ class BookOffer(Document):
     price = Double()
 
     purchased = Boolean()
-    buyer_id = Keyword()
+    purchaser_id = Keyword()
+    purchased_at = Date()
 
     class Index:
         name = 'books_offers'
@@ -83,6 +82,27 @@ class BookOffer(Document):
             purchased=data.get('purchased', False),
             buyer_id=data.get('buyer_id')
         )
+
+    def purchase(self, user):
+        if self.purchased:
+            raise Exception('Already purchased')
+
+        if self.client_id == user.client_id:
+            raise Exception('Is your offer')
+
+        if user.balance < self.price:
+            raise Exception('Not enough money')
+
+        self.purchased = True
+        self.purchaser_id = user.client_id
+        self.purchased_at = datetime.now()
+
+        self.save(refresh=True)
+
+        book = Book.get(id=self.book_id, ignore=404)
+
+        if book is not None:
+            book.update_offers_summary()
 
     def to_dict(self, include_id=False, include_meta=False, skip_empty=True):
         base = super().to_dict(include_meta=include_meta, skip_empty=skip_empty)
