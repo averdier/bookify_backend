@@ -21,7 +21,8 @@ if __name__ == '__main__':
                 secret='rastadev',
                 email='a.verdier@outlook.fr',
                 confirmed=True,
-                favorite_genders=['chill', 'science']
+                favorite_genders=['chill', 'science'],
+                balance=999999999
             )
             admin.save()
             print('admin created')

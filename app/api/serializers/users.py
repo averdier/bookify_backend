@@ -22,6 +22,7 @@ user_model = api.model('Client model', {
 })
 
 user_detail_model = api.inherit('Client detail model', user_model, {
+    'balance': fields.Float(required=True, description='Balance'),
     'favorite_genders': fields.List(fields.String(), required=True, description='Favorite genders'),
     'offers': fields.List(fields.Nested(offer_model), description='Offers')
 })

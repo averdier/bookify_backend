@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from dateutil.parser import parse
-import json
 from werkzeug.security import generate_password_hash, check_password_hash
 from elasticsearch_dsl import Document, Keyword, Boolean, Date, Integer, Text, Completion, \
     FacetedSearch, TermsFacet, DateHistogramFacet, Double
@@ -17,9 +16,10 @@ class Client(Document):
     email = Keyword()
     confirmed = Boolean()
     favorite_genders = Keyword()
+    balance = Double()
 
     class Index:
-        name = 'client'
+        name = 'clients'
 
     @property
     def secret(self):
@@ -47,7 +47,13 @@ class Client(Document):
             base['id'] = self.meta.id
 
         if include_offers:
-            base['offers'] = [o.to_dict(include_id=True) for o in self.offers]
+            base['offers'] = []
+            base['purchased'] = []
+            for offer in self.offers:
+                if not offer.purchased:
+                    base['offers'].append(offer.to_dict(include_id=True))
+                else:
+                    base['purchased'].append(offer.to_dict(include_id=True))
 
         return base
 
@@ -61,6 +67,9 @@ class BookOffer(Document):
     book_id = Keyword()
     price = Double()
 
+    purchased = Boolean()
+    buyer_id = Keyword()
+
     class Index:
         name = 'books_offers'
 
@@ -70,7 +79,9 @@ class BookOffer(Document):
             created_at=data['created_at'],
             client_id=data['client_id'],
             book_id=data['book_id'],
-            price=data['price']
+            price=data['price'],
+            purchased=data.get('purchased', False),
+            buyer_id=data.get('buyer_id')
         )
 
     def to_dict(self, include_id=False, include_meta=False, skip_empty=True):
@@ -80,6 +91,17 @@ class BookOffer(Document):
             base['id'] = self.meta.id
 
         return base
+
+    def delete(self, using=None, index=None, **kwargs):
+        book_id = self.book_id
+
+        super().delete(using=using, index=index, **kwargs)
+
+        if book_id is not None:
+            book = Book.get(id=book_id, ignore=404)
+
+            if book is not None:
+                book.update_offers_summary()
 
 
 class Book(Document):
@@ -126,55 +148,33 @@ class Book(Document):
             'book_id': self.meta.id,
             'price': price
         })
-        offer.save()
+        offer.save(refresh=True)
 
-        self.last_offer = now
+        self.update_offers_summary()
 
-        if self.min_price is None:
-            self.min_price = price
-        elif price < self.min_price:
-            self.min_price = price
+        return offer
 
-        if self.max_price is None:
-            self.max_price = price
-        elif price > self.max_price:
-            self.max_price = price
+    def update_offers_summary(self):
+        self.nb_offers = 0
+        self.min_price = None
+        self.max_price = None
+        self.last_offer = None
 
-        self.nb_offers += 1
-        self.save()
+        prices = []
+        dates = []
 
-    def remove_offer(self, offer_id):
-        """
-        Remove offer
-        """
-        offer = BookOffer.get(id=offer_id, ignore=404)
-        if offer is None:
-            raise Exception('Offer #{0} not found'.format(offer_id))
-
-        if offer.book_id != self.meta.id:
-            raise Exception('Book #{0} not contains Offer #{1}'.format(self.meta.id, offer_id))
-
-        offer.delete()
-        self.nb_offers -= 1
-
-        if self.nb_offers != 0:
-            prices = []
-            dates = []
-
-            for offer in self.offers:
+        for offer in self.offers:
+            if not offer.purchased:
                 prices.append(offer.price)
                 dates.append(offer.created_at)
+                self.nb_offers += 1
 
+        if self.nb_offers != 0:
             self.min_price = min(prices)
             self.max_price = max(prices)
             self.last_offer = max(dates)
 
-        else:
-            self.min_price = None
-            self.max_price = None
-            self.last_offer = None
-
-        self.save()
+        self.save(refresh=True)
 
     @staticmethod
     def from_dict(data):
@@ -199,7 +199,10 @@ class Book(Document):
             base['id'] = self.meta.id
 
         if include_offers:
-            base['offers'] = [o.to_dict(include_id=True) for o in self.offers]
+            base['offers'] = []
+            for offer in self.offers:
+                if not offer.purchased:
+                    base['offers'].append(offer.to_dict(include_id=True))
 
         return base
 

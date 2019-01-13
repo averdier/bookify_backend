@@ -14,6 +14,8 @@ class Config:
     PUBLIC_KEY = os.environ.get('PUBLIC_KEY', os.path.join(basedir, 'auth_pubkey.pem'))
     SALT_KEY = os.environ.get('SALT_KEY', 'random')
 
+    CONFIRM_BASE_URL = os.environ.get('CONFIRM_BASE_URL', 'http://localhost/app_dev.php/register/confirm/')
+
     PAGINATION_SIZE = int(os.environ.get('PAGINATION_SIZE', '10'))
 
     ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST', '')

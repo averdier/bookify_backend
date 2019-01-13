@@ -62,9 +62,13 @@ def verify_token(token):
 
 
 from .endpoints.auth import ns as auth_namespace
-from .endpoints.books import ns as books_namespace
+from .endpoints.account import ns as account_namespace
 from .endpoints.users import ns as users_namespace
+from .endpoints.books import ns as books_namespace
+from .endpoints.offers import ns as offers_namespace
 
 api.add_namespace(auth_namespace)
-api.add_namespace(books_namespace)
+api.add_namespace(account_namespace)
 api.add_namespace(users_namespace)
+api.add_namespace(books_namespace)
+api.add_namespace(offers_namespace)

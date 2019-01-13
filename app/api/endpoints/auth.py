@@ -3,10 +3,9 @@
 import time
 import jwt
 from flask import g, request, current_app
-from flask_restplus import Namespace, Resource, abort, marshal
+from flask_restplus import Namespace, Resource, abort
 from .. import auth
 from ..serializers.auth import token_encoded_model, token_unencoded_model
-from ..serializers.users import user_detail_model
 from ..parsers import auth_parser
 from app.models import Client
 
@@ -36,23 +35,12 @@ def is_authorized_client(client_id, secret):
         return False
 
     u = response.hits[0]
-    if u.check_secret(secret) and u.confirmed:
+
+    if u.check_secret(secret):
         g.user = u
         return True
 
     return False
-
-
-@ns.route('/me')
-class UserResource(Resource):
-    decorators = [auth.login_required]
-
-    @ns.marshal_with(user_detail_model)
-    def get(self):
-        """
-        Get user
-        """
-        return g.user.to_dict(include_id=True, include_offers=True)
 
 
 @ns.route('/token')
@@ -87,11 +75,13 @@ class TokenResource(Resource):
 
         audience = 'bookify_backend'
 
+        if not is_authorized_client(data['client_id'], data['client_secret']):
+            abort(401, error='Unauthorized')
+
+        if not g.user.confirmed:
+            abort(400, error='User not confirmed')
+
         try:
-
-            if not is_authorized_client(data['client_id'], data['client_secret']):
-                abort(401, error='Unauthorized')
-
             now = int(time.time())
             unencoded = {
                 'iss': 'bookify_backend',
