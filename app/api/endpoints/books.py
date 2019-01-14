@@ -109,3 +109,22 @@ class BookResource(Resource):
 
         else:
             abort(404, error='Book not found')
+
+
+@ns.route('/isbn/<isbn>')
+@ns.response(404, 'Book not found')
+class BookIsbnResource(Resource):
+    decorators = [auth.login_required]
+
+    @ns.marshal_with(book_detail_model)
+    def get(self, isbn):
+        """
+        Get book from isbn
+        """
+        book_search = Book.search().query('match', isbn=isbn).execute()
+
+        if book_search.hits.total != 0:
+            return book_search.hits[0].to_dict(include_id=True, include_offers=True)
+
+        else:
+            abort(404, error='Book not found')
