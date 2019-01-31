@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookify</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__left">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#bookify-backend">Bookify Backend</a>
+<ul>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#fonctions">Fonctions</a></li>
+</ul>
+</li>
+<li><a href="#installation">Installation</a>
+<ul>
+<li><a href="#génération-des-clés">Génération des clés</a></li>
+<li><a href="#configuration-du-projet">Configuration du projet</a></li>
+<li><a href="#construire-le-projet">Construire le projet</a></li>
+<li><a href="#lancement-du-projet">Lancement du projet</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <h1 id="bookify-backend">Bookify Backend</h1>
+<p>Enigma | Hackathon | Bookify</p>
+<p>Backend de l’application Bookify réalisé lors du Hackaton de l’école Enigma</p>
+<p>L’application permet :</p>
+<ul>
+<li>L’enregistrement des utilisateurs</li>
+<li>L’authentification des utilisateurs</li>
+<li>Lire les informations du compte</li>
+<li>Recharger l’argent disponible sur le compte</li>
+<li>Récupérer la liste des livres</li>
+<li>Faire une recherche de livres par nom</li>
+<li>Faire une recherche de livres par ISBN</li>
+<li>Récupérer un livre</li>
+<li>Ajouter une offre de vente pour un livre</li>
+<li>Mettre à jour une offre de vente</li>
+<li>Supprimer une offre de vente</li>
+<li>Acheter un livre</li>
+</ul>
+<h2 id="architecture">Architecture</h2>
+<p><img src="https://lh3.googleusercontent.com/TCfaEixec-FnxWVRWNoVtxbfOaWFhJDQu3eHEZPeCBPkVgymjYYCHqjTrCWbFf1q9UJtJx4VSv8" alt="Architecture" title="architecture"></p>
+<p>L’architecture du projet est découpée comme suis :</p>
+<ul>
+<li>Une base de données Elasticsearch (version: 6.2.2) afin de stocker les données</li>
+<li>Une API en Python proposant un Swagger</li>
+<li>Un serveur HTTP Nginx servant de proxy entre internet et l’API</li>
+<li>Docker pour gérer le tout</li>
+</ul>
+<p>Le projet possède 2 configurations, une pour le développement et une pour la production</p>
+<h3 id="développement">Développement</h3>
+<p>En configuration de développement :</p>
+<ul>
+<li>La base de données Elasticsearch est disponible sur le port 9200</li>
+<li>Le service d’envoi de email mailcatcher est disponible sur le port 1080</li>
+<li>L’API est disponible sur le port 80</li>
+<li>Le swagger est activé</li>
+</ul>
+<h3 id="production">Production</h3>
+<p>En configuration de production :</p>
+<ul>
+<li>L’API est disponible sur le port 443</li>
+<li>Le swagger est désactivé</li>
+</ul>
+<h2 id="fonctions">Fonctions</h2>
+<p>En configuration de développement, l’ensemble des fonctions sont documentées sur un Swagger</p>
+<p><img src="https://lh3.googleusercontent.com/SePnVlbSJUVF2beLexUyLoZFzFdbFGJol2AFP0ALQVlSTMX2x8LuXNEeRVoRNPkeS9HVAMtyuz8" alt="Swagger" title="Swagger"></p>
+<h3 id="auth">auth</h3>
+<p>L’espace de nom <code>auth</code> permet :</p>
+<ul>
+<li>Lire les informations du token d’authentification</li>
+<li>Générer un token d’authentification</li>
+</ul>
+<h3 id="account">account</h3>
+<p>L’espace de nom <code>account</code> permet :</p>
+<ul>
+<li>Lire les informations du compte de l’utilisateur authentifié</li>
+<li>Mettre à jour les informations du compte de l’utilisateur authentifié</li>
+<li>Déposer de l’argent sur le compte de l’utilisateur authentifié</li>
+</ul>
+<h3 id="users">users</h3>
+<p>L’espace de nom <code>users</code> permet :</p>
+<ul>
+<li>Enregistrer un utilisateur</li>
+<li>Confirmer l’enregistrement d’un utilisateur</li>
+</ul>
+<h3 id="books">books</h3>
+<p>L’espace de nom <code>books</code> permet :</p>
+<ul>
+<li>Récupérer la liste des livres</li>
+<li>Ajouter un livre</li>
+<li>Recherher un livre par nom</li>
+<li>Récupérer un livre à partir du numéro ISBN</li>
+<li>Récupérer un livre à partir de son identifiant unique</li>
+</ul>
+<h3 id="offers">offers</h3>
+<p>L’espace de nom <code>offers</code> permet :</p>
+<ul>
+<li>Ajouter une offre de vente</li>
+<li>Supprimer une offre de vente</li>
+<li>Modifier une offre de vente</li>
+<li>Acheter une offre de vente</li>
+</ul>
+<h1 id="installation">Installation</h1>
+<p>Cloner le projet :</p>
+<pre><code>git clone https://github.com/averdier/bookify_backend
+</code></pre>
+<h2 id="génération-des-clés">Génération des clés</h2>
+<p>Créer le dossier qui contiendra les clés</p>
+<pre><code>cd docker
+mkdir keys
+</code></pre>
+<pre><code>openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 
+Generating a 4096 bit RSA private key
+................++
+..................++
+writing new private key to 'key.pem'
+Enter PEM pass phrase:
+Verifying - Enter PEM pass phrase:
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:FR
+State or Province Name (full name) [Some-State]:France
+Locality Name (eg, city) []:Lille
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:Bitbot
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:
+Email Address []:a.verdier@outlook.fr
+</code></pre>
+<pre><code>openssl x509 -pubkey -noout -in cert.pem &gt; auth_pubkey.pem
+</code></pre>
+<pre><code>openssl rsa -in key.pem -out auth_privkey.pem 
+Enter pass phrase for key.pem: 
+writing RSA key
+</code></pre>
+<h2 id="configuration-du-projet">Configuration du projet</h2>
+<h3 id="app.ini">app.ini</h3>
+<p>Le fichier <code>/docker/config/app.ini</code> permet de paramétrer :</p>
+<ul>
+<li>Le nombre de processus de l’API</li>
+<li>Le point de montage de l’API</li>
+</ul>
+<pre><code>[uwsgi]
+mount = /&lt;mount_point&gt;=wsgi.py
+manage-script-name = true
+master = true
+processes = &lt;processes&gt;
+socket = /sockets/bookify.socket
+chmod-socket = 666
+vacuum = true
+die-on-term = true
+</code></pre>
+<h3 id="services.proddev.conf">services.&lt;prod|dev&gt;.conf</h3>
+<p>Le fichier <code>/docker/config/services&lt;prod|dev&gt;.conf</code> permet de paramètrer :</p>
+<ul>
+<li>Le point de montage de l’API dans NGINX</li>
+</ul>
+<pre><code>server {
+  listen 443 ssl;
+  charset utf-8;
+  location /&lt;mount_point&gt; {
+    uwsgi_pass unix:/sockets/bookify.socket;
+    uwsgi_param SCRIPT_NAME /&lt;mount_point&gt;;
+    uwsgi_modifier1 30;
+    include uwsgi_params;
+  }
+}
+</code></pre>
+<h3 id="docker-compose.yml">docker-compose.yml</h3>
+<p>Le fichier <code>docker-compose.yml</code> permet de paramétrer :</p>
+<p><code>CERTS</code>: Le nom de domaine</p>
+<p><code>EMAIL</code>: L’adresse email de l’administrateur pour la génération des certificats let’s encrypt</p>
+<p><code>ADMINS</code>: La liste des adresses email des administrateurs</p>
+<p><code>ELASTICSEARCH_HOST</code>: L’adresse de la base de données Elasticsearch</p>
+<p><code>ELASTICSEARCH_USER</code>: Nom d’utilisateur pour la connexion à la base de données Elasticsearch</p>
+<p><code>ELASTICSEARCH_SECRET</code>: Mot de passe pour la connexion à la base de données Elasticsearch</p>
+<p><code>PRIVATE_KEY</code>: Chemin de la clé privée pour la génération des tokens</p>
+<p><code>PUBLIC_KEY</code>: Chemin de la clé publique pour la génération des tokens</p>
+<p><code>MAIL_SERVER</code>: Adresse du serveur d’envoi de emails</p>
+<p><code>MAIL_PORT</code>: Port du serveur d’envoi de emails</p>
+<p><code>MAIL_USERNAME</code>: Nom d’utilisateur pour l’envoi de emails</p>
+<p><code>MAIL_DEFAULT_SENDER</code>: Adresse d’envoi de emails</p>
+<p><code>MAIL_USE_TLS</code>: Utilisation du TLS</p>
+<p><code>MAIL_USE_SSL</code>: Utilisation du SSL</p>
+<p><code>MAIL_DEBUG</code>: Affichage des logs d’envoi de emails</p>
+<p><code>LOG_PATH</code>: Chemin des fichiers de logs</p>
+<pre><code>version: "2"
+services:
+  nginx:
+    build: ./nginx
+    environment:
+      - CERTS=bookify.ddns.net
+      - EMAIL=a.verdier@outlook.fr
+    networks:
+      - services_network
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - sockets:/sockets/
+      - ./config/services.prod.conf:/etc/nginx/conf.d/bookify.ddns.net.conf
+      - ./etc/ssl/dhparam:/etc/ssl/dhparam
+      - ./etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - bookify_backend
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.2
+    environment:
+      - cluster.name=bookify-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m -XX:-AssumeMP"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - services_network
+  bookify_backend:
+    image: 'bookify_backend:dev'
+    command: uwsgi app.ini
+    environment:
+      - ADMINS=a.verdier@outlook.fr
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_USER=elastic
+      - ELASTICSEARCH_SECRET=changeme
+      - PRIVATE_KEY=/keys/auth_privkey.pem
+      - PUBLIC_KEY=/keys/auth_pubkey.pem
+      - MAIL_SERVER=smtp.googlemail.com
+      - MAIL_PORT=465
+      - MAIL_USERNAME=rasta.dev.02@gmail.com
+      - MAIL_PASSWORD=
+      - MAIL_DEFAULT_SENDER=rasta.dev.02@gmail.com
+      - MAIL_USE_TLS=False
+      - MAIL_USE_SSL=True
+      - MAIL_DEBUG=True
+      - LOG_PATH=/logs/bookify_backend.log
+    volumes:
+      - sockets:/sockets/
+      - ./logs:/logs
+      - ./keys:/keys/
+      - ./config/app.ini:/bookify/app.ini
+      - ./database:/database/
+    networks:
+      - services_network
+volumes:
+  sockets:
+    driver: local
+networks:
+  services_network:
+    driver: bridge
+</code></pre>
+<h2 id="construire-le-projet">Construire le projet</h2>
+<p>Construire l’image du projet</p>
+<pre><code>docker build -t bookify_backend:dev -f ./docker/Dockerfile .
+</code></pre>
+<h2 id="lancement-du-projet">Lancement du projet</h2>
+<p>Le lancement du projet ce fait en 2 temps:</p>
+<ul>
+<li>Lancement de Elasticsearch</li>
+<li>Lancement du reste du projet</li>
+</ul>
+<p>Lancement de Elasticsearch puis attendre 1 minute</p>
+<pre><code>docker-compose -f ./docker/docker-compose-prod.yml up -d elasticsearch
+</code></pre>
+<p>Lancement du reste du projet</p>
+<pre><code>docker-compose -f ./docker/docker-compose-prod.yml up -d
+</code></pre>
+
+    </div>
+  </div>
+</body>
+
+</html>
