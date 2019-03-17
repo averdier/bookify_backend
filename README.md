@@ -217,7 +217,7 @@ services:
     build: ./nginx
     environment:
       - CERTS=bookify.ddns.net
-      - EMAIL=a.verdier@outlook.fr
+      - EMAIL=arthur@elonet.fr
     networks:
       - services_network
     ports:
@@ -246,7 +246,7 @@ services:
     image: 'bookify_backend:dev'
     command: uwsgi app.ini
     environment:
-      - ADMINS=a.verdier@outlook.fr
+      - ADMINS=arthur@elonet.fr
       - ELASTICSEARCH_HOST=elasticsearch
       - ELASTICSEARCH_USER=elastic
       - ELASTICSEARCH_SECRET=changeme
@@ -254,9 +254,9 @@ services:
       - PUBLIC_KEY=/keys/auth_pubkey.pem
       - MAIL_SERVER=smtp.googlemail.com
       - MAIL_PORT=465
-      - MAIL_USERNAME=rasta.dev.02@gmail.com
+      - MAIL_USERNAME=dev@dev.Dev
       - MAIL_PASSWORD=
-      - MAIL_DEFAULT_SENDER=rasta.dev.02@gmail.com
+      - MAIL_DEFAULT_SENDER=dev@dev.dev
       - MAIL_USE_TLS=False
       - MAIL_USE_SSL=True
       - MAIL_DEBUG=True
