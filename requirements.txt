@@ -16,7 +16,7 @@ Flask-SQLAlchemy==2.3.2
 idna==2.8
 ipaddress==1.0.22
 itsdangerous==1.1.0
-Jinja2==2.10
+Jinja2==2.11.3
 jsonschema==2.6.0
 MarkupSafe==1.1.0
 pycparser==2.19
